@@ -1,10 +1,11 @@
-import { Resolver, Mutation, Args, Query, Int } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query, Int, ObjectType } from '@nestjs/graphql';
 import { NotificationService } from './notification.service';
 import { ObjectId, Types } from 'mongoose';
 import { Notifications, NotificationStructure } from '../../libs/dto/notification/notification';
 import { NotificationsInquiry } from '../../libs/dto/notification/notification.input';
 import { shapeIntoMongoObjectId } from '../../libs/config';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
+import { NotificationStatus } from '../../libs/enums/notification.enum';
 
 @Resolver('Notification')
 export class NotificationResolver {
@@ -31,9 +32,15 @@ export class NotificationResolver {
 	// 	return this.notificationService.getUnreadNotificationCount(userId);
 	// }
 
-	// @Mutation(() => Boolean)
-	// public async markNotificationsAsRead(@Args('userId') userId: ObjectId): Promise<boolean> {
-	// 	const result = await this.notificationService.markNotificationsAsRead(userId);
-	// 	return result.modifiedCount > 0;
-	// }
+	@Mutation(() => NotificationStructure)
+	public async updateNotificationStatus(
+		@Args('id', { type: () => String }) id: string,
+		@Args('status', { type: () => String }) status: NotificationStatus,
+	): Promise<NotificationStructure> {
+		const updatedNotification = await this.notificationService.updateNotificationStatus(
+			shapeIntoMongoObjectId(id),
+			status,
+		);
+		return updatedNotification;
+	}
 }

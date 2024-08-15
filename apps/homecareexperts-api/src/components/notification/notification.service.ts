@@ -39,23 +39,6 @@ export class NotificationService {
 		}
 	}
 
-	public async updateNotificationStatus(
-		notificationId: String,
-		status: NotificationStatus,
-	): Promise<NotificationStructure> {
-		const updatedNotification = await this.notificationModel.findByIdAndUpdate(
-			notificationId,
-			{ notificationStatus: status, updatedAt: new Date() },
-			{ new: true },
-		);
-
-		if (!updatedNotification) {
-			throw new NotFoundException(`Notification with ID ${notificationId} not found`);
-		}
-
-		return updatedNotification;
-	}
-
 	public async getNotifications(input: NotificationsInquiry): Promise<Notifications> {
 		// Assuming input has necessary filters, e.g., receiverId, pagination, etc.
 		const { search, page = 1, limit = 10, sort = 'createdAt' } = input;
@@ -81,13 +64,19 @@ export class NotificationService {
 		};
 	}
 
-	// public async markNotificationsAsRead(userId: ObjectId): Promise<{ modifiedCount: number }> {
-	// 	const result: UpdateResult = await this.notificationModel
-	// 		.updateMany({ receiverId: userId, notificationStatus: 'WAIT' }, { $set: { notificationStatus: 'READ' } })
-	// 		.exec();
+	public async updateNotificationStatus(id: ObjectId, status: NotificationStatus): Promise<NotificationStructure> {
+		const updatedNotification = await this.notificationModel.findByIdAndUpdate(
+			id,
+			{ notificationStatus: status, updatedAt: new Date() },
+			{ new: true },
+		);
 
-	// 	return { modifiedCount: result.modifiedCount };
-	// }
+		if (!updatedNotification) {
+			throw new NotFoundException(`Notification with ID ${id} not found`);
+		}
+
+		return updatedNotification;
+	}
 
 	// public async deleteNotification(notificationId: String): Promise<void> {
 	// 	const result = await this.notificationModel.deleteOne({ _id: notificationId });
