@@ -1,7 +1,6 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, tap } from 'rxjs';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -19,17 +18,21 @@ export class LoggingInterceptor implements NestInterceptor {
 			this.logger.log(` ${this.stringify(gqlContext.getContext().req.body)}`, 'REQUEST');
 
 			// (2) => Errors handling via GraphQL
-
 			// (3) => No errors, giving Response below
 			return next.handle().pipe(
 				tap((context) => {
+					this.logger.log('Context inside tap:', context);
+					console.log('context', context);
 					const responseTime = Date.now() - recordTime;
 					this.logger.log(` ${this.stringify(context)} - ${responseTime}ms  \n\n`, 'response');
 				}),
 			);
 		}
 	}
-	private stringify(context: ExecutionContext): string {
+	private stringify(context: any): string {
+		if (!context) {
+			return 'undefined context';
+		}
 		console.log(typeof context);
 		return JSON.stringify(context).slice(0, 75);
 	}
