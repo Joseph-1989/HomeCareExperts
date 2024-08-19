@@ -57,6 +57,6 @@ export class BatchService {
 	}
 
 	getHello(): string {
-		return 'Hello, Welcome to NESTAR BATCH SERVER!';
+		return 'Hello, Welcome to HOMECAREEXPERTS BATCH SERVER!';
 	}
 }
