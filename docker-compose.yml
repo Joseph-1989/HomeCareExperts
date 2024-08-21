@@ -6,17 +6,20 @@ services:
     restart: always
     image: node:20.10.0
     ports:
-      - 4001:3005
+      - 4001:3007
     volumes:
       - ./:/usr/src/homecareexperts
     working_dir: /usr/src/homecareexperts
+
     networks:
       - monorepo-network
-    environment:
-      - NODE_ENV=development # or 'production' based on your deployment
-      - MONGO_DEV=${MONGO_DEV}
-      - MONGO_PROD=${MONGO_PROD}
-      - SECRET_TOKEN=${SECRET_TOKEN}
+
+    # environment:
+    #   - NODE_ENV=development # or 'production' based on your deployment
+    #   - MONGO_DEV=${MONGO_DEV}
+    #   - MONGO_PROD=${MONGO_PROD}
+    #   - SECRET_TOKEN=${SECRET_TOKEN}
+
     command: bash -c "npm install && npm run build && npm run start:prod"
 
   homecareexperts-batch:
@@ -24,22 +27,33 @@ services:
     restart: always
     image: node:20.10.0
     ports:
-      - 4002:3006
+      - 4002:3008
     volumes:
       - ./:/usr/src/homecareexperts
     working_dir: /usr/src/homecareexperts
+
     networks:
       - monorepo-network
-    environment:
-      - NODE_ENV=development # or 'production' based on your deployment
-      - MONGO_DEV=${MONGO_DEV}
-      - MONGO_PROD=${MONGO_PROD}
-      - SECRET_TOKEN=${SECRET_TOKEN}
+
+    # environment:
+    #   - NODE_ENV=development # or 'production' based on your deployment
+    #   - MONGO_DEV=${MONGO_DEV}
+    #   - MONGO_PROD=${MONGO_PROD}
+    #   - SECRET_TOKEN=${SECRET_TOKEN}
+
     command: bash -c "npm install && npm run build && npm run start:prod:batch"
 
 networks:
   monorepo-network:
     driver: bridge
+# ==================================================================================================================
+
 # homecareexperts-next: localhost:4000 <=> container:3000
 # homecareexperts-api:  localhost:4001 <=> container:3005
 # homecareexperts-batch: localhost:4002 <=> container:3006
+
+# docker-compose up -d
+# docker-compose stop
+# docker-compose start
+# docker-compose restart
+# docker-compose stop && # docker-compose rm -f

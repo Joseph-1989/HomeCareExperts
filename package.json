@@ -14,7 +14,7 @@
 		"start:dev:batch": "nest start homecareexperts-batch --watch",
 		"start:debug": "nest start --debug --watch",
 		"start:prod": "NODE_ENV=production node dist/apps/homecareexperts-api/main",
-		"start:prod:batch": "node dist/apps/homecareexperts-batch/main",
+		"start:prod:batch": "NODE_ENV=production node dist/apps/homecareexperts-batch/main",
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
 		"test": "jest",
 		"test:watch": "jest --watch",
