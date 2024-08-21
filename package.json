@@ -6,7 +6,7 @@
 	"private": true,
 	"license": "UNLICENSED",
 	"scripts": {
-		"build": "nest build",
+		"build": "nest build homecareexperts-api && nest build homecareexperts-batch",
 		"format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
 		"train": "nodemon --exec ts-node train.ts",
 		"start": "nest start",
