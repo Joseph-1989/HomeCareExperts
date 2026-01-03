@@ -16,8 +16,12 @@ import { SocketModule } from './socket/socket.module';
 		GraphQLModule.forRoot({
 			driver: ApolloDriver,
 			playground: true,
+			introspection: true, // Enable GraphQL schema introspection
 			uploads: false,
 			autoSchemaFile: true,
+			apolloServerOptions: {
+				introspection: true, // Also enable in Apollo Server options for Apollo Server 4
+			},
 			formatError: (error: T) => {
 				console.log('error code:', error);
 				const graphQLFormattedError = {

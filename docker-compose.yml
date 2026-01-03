@@ -47,11 +47,11 @@ networks:
 # ==================================================================================================================
 
 # homecareexperts-next: localhost:4000 <=> container:3000
-# homecareexperts-api:  localhost:4001 <=> container:3005
-# homecareexperts-batch: localhost:4002 <=> container:3006
+# homecareexperts-api:  localhost:4001 <=> container:3007
+# homecareexperts-batch: localhost:4002 <=> container:3008
 
 # docker-compose up -d
 # docker-compose stop
-# docker-compose start
+# docker-compose  start
 # docker-compose restart
-# docker-compose stop && # docker-compose rm -f
+# docker-compose stop && docker-compose rm -f
