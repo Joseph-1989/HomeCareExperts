@@ -45,9 +45,8 @@ COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 # Copy package.json for runtime reference
 COPY --chown=nestjs:nodejs package.json ./
 
-# Copy uploads directory for static file serving
-# Note: For production, consider using Google Cloud Storage instead of local files
-COPY --chown=nestjs:nodejs uploads/ ./uploads/
+# GCS is used for file storage in production
+# Authentication is handled via Cloud Run's service account or GOOGLE_APPLICATION_CREDENTIALS env var
 
 # Switch to non-root user
 USER nestjs

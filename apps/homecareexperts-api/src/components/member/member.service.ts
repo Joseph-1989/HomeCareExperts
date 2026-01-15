@@ -3,7 +3,7 @@ import { NotificationGroup, NotificationStatus, NotificationType } from '../../l
 import { AgentsInquiry, LoginInput, MemberInput, MembersInquiry } from '../../libs/dto/member/member.input';
 import { Follower, Following, MeFollowed } from '../../libs/dto/follow/follow';
 import { MemberStatus, MemberType } from '../../libs/enums/member.enum';
-import { lookupAuthMemberLiked } from '../../libs/config';
+import { lookupAuthMemberLiked, shapeIntoMongoObjectId } from '../../libs/config';
 import { StatisticModifier, T } from '../../libs/types/common';
 import { NotificationService } from '../notification/notification.service';
 import { Direction, Message } from '../../libs/enums/common.enum';
@@ -28,7 +28,7 @@ export class MemberService {
 		private authService: AuthService,
 		private viewService: ViewService,
 		private likeService: LikeService,
-	) {}
+	) { }
 
 	// public async incrementNotificationCount(userId: ObjectId): Promise<void> {
 	// 	await this.memberModel.findByIdAndUpdate(userId, { $inc: { notificationCount: 1 } });
@@ -74,6 +74,12 @@ export class MemberService {
 	// MUTATION => UPDATE_MEMBER ======================================================================================================
 
 	public async updateMember(memberId: ObjectId, input: MemberUpdate): Promise<Member> {
+		console.log('MemberService: updateMember input:', input);
+		if (input.memberPassword) {
+			input.memberPassword = await this.authService.hashPassword(input.memberPassword);
+			console.log('MemberService: memberPassword hashed:', input.memberPassword);
+		}
+
 		const result: Member = await this.memberModel
 			.findOneAndUpdate({ _id: memberId, memberStatus: MemberStatus.ACTIVE }, input, {
 				new: true,
@@ -238,15 +244,25 @@ export class MemberService {
 
 	//MUTATION => UPDATE_MEMBER_BY_ADMIN ======================================================================================
 	public async updateMemberByAdmin(input: MemberUpdate): Promise<Member> {
+		const { _id } = input;
+		console.log('MemberService: updateMemberByAdmin input:', input);
+
+		if (input.memberPassword) {
+			const hashed = await this.authService.hashPassword(input.memberPassword);
+			input.memberPassword = hashed;
+			console.log('MemberService: memberPassword hashed:', hashed);
+		}
+
+		delete input._id;
+
 		const result: Member = await this.memberModel
-			.findOneAndUpdate({ _id: input._id }, input, {
+			.findOneAndUpdate({ _id: shapeIntoMongoObjectId(_id) }, input, {
 				new: true,
 			})
-
 			.exec();
 
 		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
-		console.log('Member.service: getAllMembersByAdmin');
+		console.log('Member.service: updateMemberByAdmin success');
 		return result;
 	}
 

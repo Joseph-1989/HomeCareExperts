@@ -8,17 +8,17 @@ import { MemberType } from '../../libs/enums/member.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
-import { getSerialForImage, shapeIntoMongoObjectId, validMimeTypes } from '../../libs/config';
+import { shapeIntoMongoObjectId } from '../../libs/config';
 import { WithoutGuard } from '../auth/guards/without.guard';
 import { Member, Members } from '../../libs/dto/member/member';
 import { LoginInput, MemberInput, AgentsInquiry, MembersInquiry } from '../../libs/dto/member/member.input';
 import { GraphQLUpload, FileUpload } from 'graphql-upload';
-import { createWriteStream } from 'fs';
+import { uploadToGCS } from '../../libs/utils/gcs-uploader';
 import { Message } from '../../libs/enums/common.enum';
 
 @Resolver()
 export class MemberResolver {
-	constructor(private readonly memberService: MemberService) {}
+	constructor(private readonly memberService: MemberService) { }
 
 	// MUTATION => SIGNUP ================================================================
 	@Mutation(() => Member)
@@ -70,6 +70,7 @@ export class MemberResolver {
 		@AuthMember('_id') memberId: ObjectId,
 	): Promise<Member> {
 		console.log('Mutation: updateMember');
+		console.log('input:', input);
 		console.log('typeof memberId: ', typeof memberId);
 		console.log('memberId:', memberId);
 		delete input._id;
@@ -124,6 +125,8 @@ export class MemberResolver {
 	// AUTHORIZATION: ADMIN
 
 	//MUTATION => UPDATE_MEMBER_BY_ADMIN ===================================================================
+	@Roles(MemberType.ADMIN)
+	@UseGuards(RolesGuard)
 	@Mutation(() => Member)
 	public async updateMemberByAdmin(@Args('input') input: MemberUpdate): Promise<Member> {
 		console.log('Mutation: updateMemberByAdmin');
@@ -143,22 +146,11 @@ export class MemberResolver {
 		console.log('Mutation: imageUploader');
 
 		if (!filename) throw new Error(Message.UPLOAD_FAILED);
-		const validMime = validMimeTypes.includes(mimetype);
-		if (!validMime) throw new Error(Message.PROVIDE_ALLOWED_FORMAT);
 
-		const imageName = getSerialForImage(filename);
-		const url = `uploads/${target}/${imageName}`;
 		const stream = createReadStream();
+		const { publicUrl } = await uploadToGCS(stream, filename, mimetype, target as string);
 
-		const result = await new Promise((resolve, reject) => {
-			stream
-				.pipe(createWriteStream(url))
-				.on('finish', async () => resolve(true))
-				.on('error', () => reject(false));
-		});
-		if (!result) throw new Error(Message.UPLOAD_FAILED);
-
-		return url;
+		return publicUrl;
 	}
 
 	//MUTATION => IMAGE_S_UPLOADER ===================================================================
@@ -171,28 +163,15 @@ export class MemberResolver {
 		@Args('target') target: String,
 	): Promise<string[]> {
 		console.log('Mutation: imagesUploader');
-		const uploadedImages = [];
-		const promisedList = files.map(async (img: Promise<FileUpload>, index: number): Promise<Promise<void>> => {
+		const uploadedImages: string[] = [];
+		const promisedList = files.map(async (img: Promise<FileUpload>, index: number): Promise<void> => {
 			try {
-				const { filename, mimetype, encoding, createReadStream } = await img;
-				const validMime = validMimeTypes.includes(mimetype);
-				if (!validMime) throw new Error(Message.PROVIDE_ALLOWED_FORMAT);
-
-				const imageName = getSerialForImage(filename);
-				const url = `uploads/${target}/${imageName}`;
+				const { filename, mimetype, createReadStream } = await img;
 				const stream = createReadStream();
-
-				const result = await new Promise((resolve, reject) => {
-					stream
-						.pipe(createWriteStream(url))
-						.on('finish', () => resolve(true))
-						.on('error', () => reject(false));
-				});
-				if (!result) throw new Error(Message.UPLOAD_FAILED);
-
-				uploadedImages[index] = url;
+				const { publicUrl } = await uploadToGCS(stream, filename, mimetype, target as string);
+				uploadedImages[index] = publicUrl;
 			} catch (err) {
-				console.log('Error, file missing!');
+				console.log('Error uploading file:', err);
 			}
 		});
 
